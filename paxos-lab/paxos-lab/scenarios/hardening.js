@@ -2,7 +2,7 @@
 const Proposer = require("../proposer");
 const Acceptor = require("../acceptor");
 const Learner = require("../learner");
-const Simulator = require("../simulator");
+const Quorum = require("../quorum");
 
 console.log("\n====================================");
 console.log("PART 8: HARDENING PAXOS");
@@ -58,7 +58,7 @@ a1.highestPromised = 0;
 a1.acceptedProposal = null;
 
 function checkState(acceptor) {
-    if (acceptor.highestPromised === 0) {
+    if (acceptor.highestPromised === 0 && acceptor.acceptedProposal === null) {
         console.log(`${acceptor.id}: STATE LOSS DETECTED`);
     }
 }
@@ -103,27 +103,37 @@ if (!majorityAvailable(acceptors)) {
 console.log("\n[Hardening #4]");
 
 const proposalHistory = [
-    101,
-    102,
-    103,
-    104,
-    105
+    { proposer: "P1", number: 101 },
+    { proposer: "P2", number: 102 },
+    { proposer: "P1", number: 103 },
+    { proposer: "P2", number: 104 },
+    { proposer: "P1", number: 105 }
 ];
+
+function detectChurn(history) {
+    const distinct = new Set(history.map(entry => entry.proposer));
+    return distinct.size > 1;
+}
 
 console.log("Proposal activity:");
 
 console.log(proposalHistory);
-console.log("Potential proposer churn detected");
-console.log("Recommend Multi-Paxos leader stabilisation"
-);
+
+if (detectChurn(proposalHistory)) {
+    console.log("Potential proposer churn detected");
+    console.log("Recommend Multi-Paxos leader stabilisation");
+}
 
 /*
  * HARDENING #5
- * Safe deployment example
+ * Audit logging
  */
 
 console.log("\n[Hardening #5]");
-console.log("Deploying protected Paxos cluster...");
+console.log("Recording audit log...");
+
+const auditLog = [];
+const audit = (event, detail) => auditLog.push({ event, ...detail });
 
 const proposer = new Proposer("P1");
 
@@ -131,13 +141,45 @@ const safeAcceptors = [
     new Acceptor("A1"),
     new Acceptor("A2"),
     new Acceptor("A3")
-
 ];
 
 const learners = [
     new Learner("L1")
 ];
 
-const simulator = new Simulator(proposer,safeAcceptors,learners);
-simulator.run("instances=20");
+const quorum = new Quorum(safeAcceptors.length);
+
+const proposal = proposer.nextProposal("instances=20");
+audit("PROPOSAL", { number: proposal.number, value: proposal.value });
+
+const promises = [];
+for (const acceptor of safeAcceptors) {
+    const response = acceptor.prepare(proposal.number);
+    if (response) {
+        promises.push(response);
+        audit("PROMISE", { acceptor: acceptor.id, number: proposal.number, accepted: response.accepted });
+    }
+}
+audit("QUORUM", { phase: "prepare", count: promises.length, required: quorum.majority() });
+
+const accepted = [];
+for (const acceptor of safeAcceptors) {
+    const response = acceptor.accept(proposal);
+    if (response) {
+        accepted.push(response);
+        audit("ACCEPTED", { acceptor: acceptor.id, number: proposal.number, value: proposal.value });
+    }
+}
+audit("QUORUM", { phase: "accept", count: accepted.length, required: quorum.majority() });
+
+audit("CHOSEN", { number: proposal.number, value: proposal.value });
+for (const learner of learners) {
+    learner.learn(proposal.value);
+}
+
+console.log("Audit log:");
+for (const { event, ...rest } of auditLog) {
+    console.log(`  ${event}`, rest);
+}
+
 console.log("\nHARDENING COMPLETE");

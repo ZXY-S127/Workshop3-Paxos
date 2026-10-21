@@ -530,3 +530,96 @@ The majority requirement was incorrectly lowered, which successfully removed quo
 
 # Part 8: Hardening a Paxos Deployment
 
+Modification has been made in `scenarios/hardening.js`. 
+
+## Part 8.1: Protect Quorum Rules
+
+**Terminal Result:**
+
+```
+[Hardening #1]
+Validating quorum configuration...
+BLOCKED: Unsafe quorum size: 2
+```
+
+**Observation:**
+
+`validateQuorum(totalNodes, quorumSize)` computes the strict-majority minimum (`⌊n/2⌋ + 1`) and throws when the configured quorum is smaller. A 5-node cluster configured with a quorum of 2 is rejected before deployment, so quorum overlap cannot be silently removed.
+
+## Part 8.2: Detect State Loss
+
+**Terminal Result:**
+
+```
+[Hardening #2]
+Checking persistent state...
+A1: STATE LOSS DETECTED
+```
+
+**Observation:**
+
+`checkState(acceptor)` detects the "amnesiac acceptor" from Part 7.3 by checking both `highestPromised === 0` and `acceptedProposal === null`, an acceptor whose previously stored state has been wiped.
+
+## Part 8.3: Protect Against Majority Loss
+
+**Terminal Result:**
+
+```
+[Hardening #3]
+MAJORITY LOST
+New proposals disabled
+```
+
+**Observation:**
+
+`majorityAvailable(acceptors)` counts online acceptors against the quorum. With only 1 of 3 acceptors online the check fails, so new proposals are disabled instead of grinding through a doomed round (as in Part 7.2).
+
+## Part 8.4: Detect Proposer Instability
+
+**Terminal Result:**
+
+```
+[Hardening #4]
+Proposal activity:
+[
+  { proposer: 'P1', number: 101 },
+  { proposer: 'P2', number: 102 },
+  { proposer: 'P1', number: 103 },
+  { proposer: 'P2', number: 104 },
+  { proposer: 'P1', number: 105 }
+]
+Potential proposer churn detected
+Recommend Multi-Paxos leader stabilisation
+```
+
+**Observation:**
+
+`detectChurn(history)` counts the distinct proposers in a rolling window of recent activity. More than one distinct proposer means no stable leader has emerged, the protocol stays correct but becomes inefficient, so it is worth alerting on.
+
+## Part 8.5: Improve Observability
+
+**Terminal Result:**
+
+```
+[Hardening #5]
+Recording audit log...
+L1 LEARNED CHOSEN VALUE: instances=20
+Audit log:
+  PROPOSAL { number: 101, value: 'instances=20' }
+  PROMISE { acceptor: 'A1', number: 101, accepted: null }
+  PROMISE { acceptor: 'A2', number: 101, accepted: null }
+  PROMISE { acceptor: 'A3', number: 101, accepted: null }
+  QUORUM { phase: 'prepare', count: 3, required: 2 }
+  ACCEPTED { acceptor: 'A1', number: 101, value: 'instances=20' }
+  ACCEPTED { acceptor: 'A2', number: 101, value: 'instances=20' }
+  ACCEPTED { acceptor: 'A3', number: 101, value: 'instances=20' }
+  QUORUM { phase: 'accept', count: 3, required: 2 }
+  CHOSEN { number: 101, value: 'instances=20' }
+
+HARDENING COMPLETE
+```
+
+**Observation:**
+
+An `auditLog` records a structured entry for every protocol event: proposal numbers, promise responses, accepted values, quorum formation and the chosen value. So the system is observable as well as correct.
+
