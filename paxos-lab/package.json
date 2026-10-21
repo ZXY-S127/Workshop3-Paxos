@@ -1,0 +1,43 @@
+{
+  "name": "paxos-lab",
+  "version": "1.0.0",
+  "description": "Paxos Workshop for Fundamentals of System Security",
+  "main": "scenarios/happy_path.js",
+  "author": "Inah Omoronyia",
+  "license": "MIT",
+
+  "scripts": {
+    "start": "node scenarios/happy_path.js",
+
+    "happy": "node scenarios/happy_path.js",
+    "failure": "node scenarios/acceptor_failure.js",
+    "proposers": "node scenarios/competing_proposers.js",
+    "partial": "node scenarios/partial_acceptance.js",
+    "preserve": "node scenarios/preserve_chosen_value.js",
+    "multi": "node scenarios/multi_paxos.js",
+
+    "partition": "node scenarios/network_partition.js",
+
+    "majority-loss": "node scenarios/breaking_assumptions/majority_loss.js",
+    "state-loss": "node scenarios/breaking_assumptions/state_loss.js",
+    "quorum-error": "node scenarios/breaking_assumptions/quorum_misconfiguration.js",
+
+    "hardening": "node scenarios/hardening.js",
+
+    "all": "npm run happy && npm run failure && npm run proposers && npm run partial && npm run preserve && npm run multi && npm run partition"
+  },
+
+  "keywords": [
+    "paxos",
+    "consensus",
+    "distributed-systems",
+    "fault-tolerance",
+    "security",
+    "workshop",
+    "teaching"
+  ],
+
+  "engines": {
+    "node": ">=18"
+  }
+}
