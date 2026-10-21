@@ -1,4 +1,6 @@
-# Workshop 3
+# Workshop 3-4
+
+## Workshop 3
 
 **See Detailed Report of Workshop 3 in:**
 
