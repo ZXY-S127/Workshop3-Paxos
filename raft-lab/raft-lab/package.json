@@ -1,0 +1,32 @@
+{
+  "name": "raft-lab",
+  "version": "1.0.0",
+  "description": "Raft Distributed Consensus Simulation",
+  "main": "scenarios/leader_election.js",
+  "scripts": {
+    "start": "node scenarios/leader_election.js",
+    "election": "node scenarios/leader_election.js",
+    "heartbeats": "node scenarios/heartbeats.js",
+    "leader-failure": "node scenarios/leader_failure.js",
+    "replication": "node scenarios/log_replication.js",
+    "follower-failure": "node scenarios/follower_failure.js",
+    "majority-lost": "node scenarios/majority_lost.js",
+    "partition": "node scenarios/network_partition.js",
+    "recovery": "node scenarios/log_recovery.js",
+    "hardening": "node scenarios/hardening.js"
+  },
+  "keywords": [
+    "Raft",
+    "consensus",
+    "distributed-systems",
+    "fault-tolerance",
+    "security",
+    "workshop",
+    "teaching"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Inah Omoronyia",
+  "license": "ISC"
+}
