@@ -1,5 +1,7 @@
 # Workshop 3-4
 
+## Members: Ziyu Su 2810330, Xiyue Zhang 2823696
+
 ## Workshop 3
 
 **See Detailed Report of Workshop 3 in:**
@@ -30,4 +32,15 @@ Run all at once: `npm run all`.
 * Core modules required/used by this script: `proposer.js`, `acceptor.js`, `learner.js`, `quorum.js`.
 * Five hardenings implemented: Quorum validation, State loss detection, Majority health check, Proposer churn detection, and Audit logs.
 
+## Workshop4
+
+The detailed report is in raft_lab
+
+Please run
+
+```shell
+node scenarios/resilience_raft.js
+```
+
+to check the part 10 achievement.
 
