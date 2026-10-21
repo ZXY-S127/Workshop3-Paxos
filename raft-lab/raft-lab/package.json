@@ -13,7 +13,9 @@
     "majority-lost": "node scenarios/majority_lost.js",
     "partition": "node scenarios/network_partition.js",
     "recovery": "node scenarios/log_recovery.js",
-    "hardening": "node scenarios/hardening.js"
+    "hardening": "node scenarios/hardening.js",
+    "hardened": "node scenarios/resilient_raft.js",
+    "test": "node --test tests/hardenedSimulator.test.js"
   },
   "keywords": [
     "Raft",
