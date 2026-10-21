@@ -6,4 +6,6 @@ class LogEntry {
         this.term = term;
         this.command = command;
     }
+    
 }
+module.exports = LogEntry;
